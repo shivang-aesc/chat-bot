@@ -1,0 +1,66 @@
+{
+    "info": {
+        "_postman_id": "faq-bot-collection",
+        "name": "FAQ Bot API",
+        "description": "Collection for testing the FAQ Bot API endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Add FAQs",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"faqs\": [\n        {\n            \"question\": \"How do I reset my password?\",\n            \"answer\": \"Go to settings > account > reset password.\"\n        },\n        {\n            \"question\": \"What is your refund policy?\",\n            \"answer\": \"You can request a refund within 30 days of purchase.\"\n        }\n    ]\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8000/faqs",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8000",
+                    "path": [
+                        "faqs"
+                    ]
+                },
+                "description": "Add new FAQs to the system"
+            }
+        },
+        {
+            "name": "Ask Question",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"text\": \"How can I reset my password?\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8000/ask",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8000",
+                    "path": [
+                        "ask"
+                    ]
+                },
+                "description": "Ask a question and get the most relevant answer"
+            }
+        }
+    ]
+}
