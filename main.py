@@ -8,6 +8,7 @@ import os
 from loguru import logger
 from config import settings
 import uvicorn
+from mangum import Mangum
 
 # Configure logging
 logger.add("logs/faq_bot.log", rotation="500 MB")
@@ -165,3 +166,6 @@ async def ask_question(question: Question):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True) 
+
+
+handler = Mangum(app)
