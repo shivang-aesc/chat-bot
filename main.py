@@ -9,6 +9,7 @@ from loguru import logger
 from config import settings
 import uvicorn
 from mangum import Mangum
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configure logging
 logger.add("logs/faq_bot.log", rotation="500 MB")
@@ -17,6 +18,14 @@ app = FastAPI(
     title="FAQ Bot API",
     description="A FastAPI-based FAQ bot that uses OpenAI embeddings for question matching",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Initialize OpenAI client
