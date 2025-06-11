@@ -133,6 +133,7 @@ async def add_faqs(faq_list: FAQList):
         }
     except Exception as e:
         logger.error(f"Error adding FAQs: {str(e)}")
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/ask", response_model=dict)
