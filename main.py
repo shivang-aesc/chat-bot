@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import List, Optional
 import numpy as np
 from openai import OpenAI
 import json
 import os
+import asyncio
+import httpx
 from loguru import logger
 from config import settings
 import uvicorn
@@ -30,6 +32,9 @@ app.add_middleware(
 
 # Initialize OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+# Global variable to store the server URL for self-pinging
+server_url = None
 
 class FAQItem(BaseModel):
     question: str
@@ -82,7 +87,25 @@ def cosine_similarity(a: List[float], b: List[float]) -> float:
 @app.on_event("startup")
 async def startup_event():
     """Initialize the application"""
+    global server_url
     ensure_data_directory()
+    
+    # Set server URL for self-pinging (for Render deployment)
+    if os.getenv("RENDER_EXTERNAL_URL"):
+        server_url = os.getenv("RENDER_EXTERNAL_URL")
+    elif os.getenv("PORT"):
+        # For local development or other deployments
+        server_url = f"http://localhost:{os.getenv('PORT', '8001')}"
+    else:
+        server_url = "http://localhost:8001"
+    
+    logger.info(f"Server URL set to: {server_url}")
+    
+    # Start background ping task if enabled
+    if settings.ENABLE_AUTO_PING:
+        asyncio.create_task(background_ping_task())
+        logger.info("Background ping task started")
+    
     logger.info("Application started")
 
 @app.post("/faqs", response_model=dict)
@@ -173,6 +196,42 @@ async def ask_question(question: Question):
     except Exception as e:
         logger.error(f"Error processing question: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+async def ping_server():
+    """Ping the server to keep it alive"""
+    global server_url
+    if not server_url:
+        logger.warning("Server URL not set, cannot ping server")
+        return
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{server_url}/health")
+            if response.status_code == 200:
+                logger.info("Server pinged successfully")
+            else:
+                logger.warning(f"Server ping failed with status: {response.status_code}")
+    except Exception as e:
+        logger.error(f"Error pinging server: {str(e)}")
+
+async def background_ping_task():
+    """Background task that periodically pings the server"""
+    while True:
+        try:
+            await asyncio.sleep(settings.PING_INTERVAL)
+            await ping_server()
+        except Exception as e:
+            logger.error(f"Error in background ping task: {str(e)}")
+            await asyncio.sleep(60)  # Wait 1 minute before retrying
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint to verify server is running"""
+    return {
+        "status": "healthy",
+        "message": "FAQ Bot API is running",
+        "timestamp": asyncio.get_event_loop().time()
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True) 

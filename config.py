@@ -10,5 +10,8 @@ class Settings(BaseSettings):
     SIMILARITY_THRESHOLD: float = 0.85
     EMBEDDINGS_FILE: str = "data/faq_embeddings.npy"
     FAQ_FILE: str = "data/faqs.json"
+    # Health check configuration to keep server alive
+    PING_INTERVAL: int = int(os.getenv("PING_INTERVAL", "300"))  # 5 minutes default
+    ENABLE_AUTO_PING: bool = os.getenv("ENABLE_AUTO_PING", "true").lower() == "true"
 
 settings = Settings() 

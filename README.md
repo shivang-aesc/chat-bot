@@ -10,6 +10,8 @@ A FastAPI-based FAQ bot that uses OpenAI embeddings for question matching. This 
 - Swagger documentation
 - Comprehensive logging
 - Postman collection for easy testing
+- **Auto-keep-alive functionality for Render deployment**
+- **Health check endpoint**
 
 ## Setup
 
@@ -36,15 +38,38 @@ Start the server:
 python main.py
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at `http://localhost:8001`
+
+## Keep-Alive Configuration
+
+The application includes built-in keep-alive functionality to prevent Render from shutting down inactive servers:
+
+### Environment Variables
+- `PING_INTERVAL`: Time between pings in seconds (default: 300 = 5 minutes)
+- `ENABLE_AUTO_PING`: Enable/disable auto-ping (default: true)
+- `RENDER_EXTERNAL_URL`: Automatically detected on Render
+
+### Health Check Endpoint
+- **GET** `/health`
+- Returns server status and can be used for external monitoring
+
+### External Ping Script
+You can also use the included `ping_server.py` script as a backup:
+```bash
+python ping_server.py https://your-app.onrender.com
+```
 
 ## API Documentation
 
 Once the server is running, you can access:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8001/docs`
+- ReDoc: `http://localhost:8001/redoc`
 
 ## API Endpoints
+
+### Health Check
+- **GET** `/health`
+- Returns server status and timestamp
 
 ### Add FAQs
 - **POST** `/faqs`
